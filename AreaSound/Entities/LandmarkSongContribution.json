@@ -1,0 +1,23 @@
+{
+  "name": "LandmarkSongContribution",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who contributed the song"
+    },
+    "landmark_id": {
+      "type": "string",
+      "description": "ID of the landmark the song was contributed to"
+    },
+    "song_id": {
+      "type": "string",
+      "description": "ID of the song that was contributed"
+    }
+  },
+  "required": [
+    "user_email",
+    "landmark_id",
+    "song_id"
+  ]
+}

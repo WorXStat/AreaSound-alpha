@@ -1,0 +1,36 @@
+{
+  "name": "Playlist",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the playlist"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the playlist"
+    },
+    "cover_color": {
+      "type": "string",
+      "description": "Color for the playlist cover",
+      "default": "#8B5CF6"
+    },
+    "cover_image_url": {
+      "type": "string",
+      "description": "URL for the playlist cover image"
+    },
+    "is_public": {
+      "type": "boolean",
+      "description": "Whether the playlist is visible to nearby users",
+      "default": true
+    },
+    "song_count": {
+      "type": "number",
+      "description": "Number of songs in playlist",
+      "default": 0
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

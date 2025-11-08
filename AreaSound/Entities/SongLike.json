@@ -1,0 +1,28 @@
+{
+  "name": "SongLike",
+  "type": "object",
+  "properties": {
+    "song_id": {
+      "type": "string",
+      "description": "ID of the song that was liked"
+    },
+    "landmark_id": {
+      "type": "string",
+      "description": "ID of the landmark where the song was liked"
+    },
+    "liker_email": {
+      "type": "string",
+      "description": "Email of the user who liked the song"
+    },
+    "song_creator_email": {
+      "type": "string",
+      "description": "Email of the user who originally added the song"
+    }
+  },
+  "required": [
+    "song_id",
+    "landmark_id",
+    "liker_email",
+    "song_creator_email"
+  ]
+}

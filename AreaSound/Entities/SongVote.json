@@ -1,0 +1,27 @@
+{
+  "name": "SongVote",
+  "type": "object",
+  "properties": {
+    "song_id": {
+      "type": "string",
+      "description": "ID of the song that was voted on"
+    },
+    "voter_email": {
+      "type": "string",
+      "description": "Email of the user who voted"
+    },
+    "vote_type": {
+      "type": "string",
+      "enum": [
+        "like",
+        "dislike"
+      ],
+      "description": "Type of vote"
+    }
+  },
+  "required": [
+    "song_id",
+    "voter_email",
+    "vote_type"
+  ]
+}

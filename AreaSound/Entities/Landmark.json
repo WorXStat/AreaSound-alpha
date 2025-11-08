@@ -1,0 +1,36 @@
+{
+  "name": "Landmark",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the landmark"
+    },
+    "description": {
+      "type": "string",
+      "description": "A short description for the landmark"
+    },
+    "latitude": {
+      "type": "number",
+      "description": "The latitude for the landmark's location"
+    },
+    "longitude": {
+      "type": "number",
+      "description": "The longitude for the landmark's location"
+    },
+    "thumbnail_url": {
+      "type": "string",
+      "description": "URL for the landmark thumbnail image"
+    },
+    "is_public": {
+      "type": "boolean",
+      "description": "Whether the landmark is visible to all users",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "latitude",
+    "longitude"
+  ]
+}
