@@ -1,37 +1,99 @@
-import React, { useState } from 'react';
-import { Input } from '@/components/ui/input';
+import React, { useState, useEffect } from 'react';
+import { Landmark } from '@/entities/all';
 import { Button } from '@/components/ui/button';
-import { Search, Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Loader2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
-export default function SongSearch({ onSearch, isSearching }) {
-  const [query, setQuery] = useState('');
+export default function CreateLandmarkPanel({ open, onClose, coords, onSuccess }) {
+    const [name, setName] = useState('');
+    const [description, setDescription] = useState('');
+    const [isPublic, setIsPublic] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState(null);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    onSearch(query);
-  };
+    useEffect(() => {
+        if (!open) {
+            setName('');
+            setDescription('');
+            setIsPublic(true);
+            setError(null);
+            setIsSubmitting(false);
+        }
+    }, [open]);
 
-  return (
-    <div className="bg-black/50 backdrop-blur-md p-4 rounded-lg">
-        <h2 className="text-lg font-bold text-white mb-3">Search for a Vibe</h2>
-        <form onSubmit={handleSearch} className="flex gap-2">
-            <Input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search by song, artist, or lyrics..."
-                className="bg-gray-900 border-white/20 text-white placeholder:text-white/40 rounded-none flex-1"
-            />
-            <Button
-                type="submit"
-                disabled={isSearching || !query}
-                className="bg-emerald-500 hover:bg-emerald-600 text-black rounded-none gap-2"
-            >
-                {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-                Search
-            </Button>
-        </form>
-        <p className="text-xs text-white/50 mt-3">Note: Search by humming is not currently supported.</p>
-    </div>
-  );
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        setError(null);
+
+        if(!name || !coords) {
+            setError('Landmark name is required and coordinates must be set.');
+            setIsSubmitting(false);
+            return;
+        }
+
+        try {
+            const newLandmark = await Landmark.create({
+                name,
+                description,
+                latitude: coords.lat,
+                longitude: coords.lng,
+                is_public: isPublic
+            });
+            onSuccess(newLandmark);
+        } catch(err) {
+            console.error("Error creating landmark", err);
+            setError("Failed to create landmark. Please try again.");
+            setIsSubmitting(false);
+        }
+    }
+
+    if (!open) return null;
+
+    return (
+        <div className="absolute bottom-0 left-0 right-0 md:left-auto md:bottom-8 md:right-8 md:w-96 bg-black/80 backdrop-blur-md border-t-2 md:border-2 cyber-border z-20 p-6 md:rounded-lg">
+            <h2 className="text-sky-400 text-2xl font-bold mb-4">Create New Landmark</h2>
+            <p className="text-white/60 text-sm mb-4">Pan the map to position the pin, then fill out the details below.</p>
+            {coords && (
+                <div className="text-xs text-white/40 mb-3">
+                    📍 Location: {coords.lat.toFixed(6)}, {coords.lng.toFixed(6)}
+                </div>
+            )}
+            <form onSubmit={handleSubmit} className="space-y-4">
+                {error && <Alert variant="destructive" className="rounded-lg"><AlertDescription>{error}</AlertDescription></Alert>}
+                <div>
+                    <Label htmlFor="landmark-name">Landmark Name *</Label>
+                    <Input id="landmark-name" value={name} onChange={e => setName(e.target.value)} required className="bg-gray-900 border-white/20 mt-1 rounded-lg focus:ring-sky-500" />
+                </div>
+                <div>
+                    <Label htmlFor="landmark-desc">Description</Label>
+                    <Textarea id="landmark-desc" value={description} onChange={e => setDescription(e.target.value)} className="bg-gray-900 border-white/20 mt-1 rounded-lg focus:ring-sky-500" />
+                </div>
+                <div className="flex items-center justify-between bg-black/30 p-3 rounded-lg">
+                    <div>
+                        <Label htmlFor="landmark-public" className="text-white">Public Landmark</Label>
+                        <p className="text-white/60 text-xs mt-1">
+                            Allow all users to see this landmark
+                        </p>
+                    </div>
+                    <Switch
+                        id="landmark-public"
+                        checked={isPublic}
+                        onCheckedChange={setIsPublic}
+                    />
+                </div>
+                <div className="flex gap-4 pt-2">
+                    <Button type="button" variant="outline" onClick={onClose} className="w-full bg-transparent border-white/50 hover:bg-white/10 rounded-lg">Cancel</Button>
+                    <Button type="submit" disabled={isSubmitting || !name} className="w-full bg-sky-500 hover:bg-sky-600 text-black rounded-lg">
+                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isSubmitting ? "Creating..." : "Create Landmark"}
+                    </Button>
+                </div>
+            </form>
+        </div>
+    )
 }
