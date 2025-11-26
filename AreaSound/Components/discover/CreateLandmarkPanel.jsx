@@ -12,6 +12,8 @@ export default function CreateLandmarkPanel({ open, onClose, coords, onSuccess }
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [isPublic, setIsPublic] = useState(true);
+    //20251126
+    const [visibleToFriends, setVisibleToFriends] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
 
@@ -20,6 +22,8 @@ export default function CreateLandmarkPanel({ open, onClose, coords, onSuccess }
             setName('');
             setDescription('');
             setIsPublic(true);
+            //20251126
+            setVisibleToFriends(false);
             setError(null);
             setIsSubmitting(false);
         }
@@ -42,7 +46,9 @@ export default function CreateLandmarkPanel({ open, onClose, coords, onSuccess }
                 description,
                 latitude: coords.lat,
                 longitude: coords.lng,
-                is_public: isPublic
+                //20251126
+                is_public: isPublic,
+                visible_to_friends: !isPublic && visibleToFriends
             });
             onSuccess(newLandmark);
         } catch(err) {
@@ -86,6 +92,23 @@ export default function CreateLandmarkPanel({ open, onClose, coords, onSuccess }
                         onCheckedChange={setIsPublic}
                     />
                 </div>
+
+                {!isPublic && (
+                    <div className="flex items-center justify-between bg-black/30 p-3 rounded-lg ml-6 border-l-2 border-sky-500/50">
+                        <div>
+                            <Label htmlFor="landmark-friends" className="text-white">Visible to Friends</Label>
+                            <p className="text-white/60 text-xs mt-1">
+                                Allow mutual friends to see this private landmark
+                            </p>
+                        </div>
+                        <Switch
+                            id="landmark-friends"
+                            checked={visibleToFriends}
+                            onCheckedChange={setVisibleToFriends}
+                            className="data-[state=checked]:bg-sky-500"
+                        />
+                    </div>
+                )}
                 <div className="flex gap-4 pt-2">
                     <Button type="button" variant="outline" onClick={onClose} className="w-full bg-transparent border-white/50 hover:bg-white/10 rounded-lg">Cancel</Button>
                     <Button type="submit" disabled={isSubmitting || !name} className="w-full bg-sky-500 hover:bg-sky-600 text-black rounded-lg">
