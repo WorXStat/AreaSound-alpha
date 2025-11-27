@@ -7,10 +7,10 @@ export default function Layout({ children, currentPageName }) {
   const location = useLocation();
 
   const navItems = [
-  { name: "Discover", path: "Discover", icon: Waves },
-  { name: "Playlists", path: "MyPlaylists", icon: ListMusic },
-  { name: "Profile", path: "Profile", icon: User }];
-
+    { name: "Discover", path: "Discover", icon: Waves },
+    { name: "Playlists", path: "MyPlaylists", icon: ListMusic },
+    { name: "Profile", path: "Profile", icon: User },
+  ];
 
   const isActive = (pageName) => {
     const pageUrl = createPageUrl(pageName);
@@ -27,8 +27,8 @@ export default function Layout({ children, currentPageName }) {
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-        crossOrigin="" />
-
+        crossOrigin=""
+      />
       <style>{`
         :root {
           --accent: #34d399; /* emerald-400 */
@@ -62,21 +62,21 @@ export default function Layout({ children, currentPageName }) {
                   key={item.path}
                   to={createPageUrl(item.path)}
                   className={`flex items-center gap-3 px-4 py-3 transition-all border-l-4 ${
-                  active ?
-                  "bg-emerald-500/10 text-emerald-300 border-emerald-400" :
-                  "text-white/70 hover:bg-white/5 hover:text-white border-transparent"}`
-                  }>
-
+                    active
+                      ? "bg-emerald-500/10 text-emerald-300 border-emerald-400"
+                      : "text-white/70 hover:bg-white/5 hover:text-white border-transparent"
+                  }`}
+                >
                   <Icon className="w-5 h-5" />
                   <span className="font-medium">{item.name}</span>
-                </Link>);
-
+                </Link>
+              );
             })}
           </div>
         </nav>
 
         {/* Main Content */}
-        <main className="pb-20 opacity-100 w-full md:pb-0 md:ml-64">
+        <main className="w-full pb-20 md:pb-0 md:ml-64">
           {children}
         </main>
       </div>
@@ -92,16 +92,16 @@ export default function Layout({ children, currentPageName }) {
                 key={item.path}
                 to={createPageUrl(item.path)}
                 className={`flex flex-col items-center justify-center gap-1 transition-all p-2 w-20 ${
-                active ? "text-emerald-400" : "text-white/60 hover:text-emerald-400"}`
-                }>
-
+                  active ? "text-emerald-400" : "text-white/60 hover:text-emerald-400"
+                }`}
+              >
                 <Icon className={`w-6 h-6 ${active ? "drop-shadow-[0_0_5px_var(--accent)]" : ""}`} />
                 <span className="text-xs font-medium">{item.name}</span>
-              </Link>);
-
+              </Link>
+            );
           })}
         </div>
       </nav>
-    </div>);
-
+    </div>
+  );
 }
