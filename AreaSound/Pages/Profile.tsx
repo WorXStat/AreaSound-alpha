@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { User, Playlist } from "@/entities/all";
 import { base44 } from "@/api/base44Client";
@@ -11,24 +10,28 @@ import { Badge } from "@/components/ui/badge";
 import { Pencil, Save, X, Music, Award, User as UserIcon, Ghost, Bot, Star, Sun, Moon, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import FriendRequests from "../components/profile/FriendRequests";
 
 const ICONS = [
-{ name: "User", component: UserIcon },
-{ name: "Ghost", component: Ghost },
-{ name: "Bot", component: Bot },
-{ name: "Star", component: Star },
-{ name: "Sun", component: Sun },
-{ name: "Moon", component: Moon }];
+  { name: "User", component: UserIcon },
+  { name: "Ghost", component: Ghost },
+  { name: "Bot", component: Bot },
+  { name: "Star", component: Star },
+  { name: "Sun", component: Sun },
+  { name: "Moon", component: Moon }
+];
 
 
 const ICON_COLORS = [
-"#3B82F6", "#8B5CF6", "#EC4899", "#F59E0B",
-"#10B981", "#06B6D4", "#6366F1", "#EF4444"];
+  "#3B82F6", "#8B5CF6", "#EC4899", "#F59E0B",
+  "#10B981", "#06B6D4", "#6366F1", "#EF4444"
+];
 
 
 const GENRES = [
-"Pop", "Rock", "Hip-Hop", "R&B", "Jazz", "Classical",
-"Electronic", "Country", "Indie", "Metal", "Folk", "Blues"];
+  "Pop", "Rock", "Hip-Hop", "R&B", "Jazz", "Classical",
+  "Electronic", "Country", "Indie", "Metal", "Folk", "Blues"
+];
 
 
 export default function Profile() {
@@ -96,6 +99,7 @@ export default function Profile() {
   return (
     <div className="min-h-screen md:ml-64">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <FriendRequests />
         <div className="bg-black/50 backdrop-blur-md border-2 cyber-border p-8 rounded-lg mb-6">
           <div className="flex items-start justify-between mb-6">
             <div className="flex items-center gap-4">
@@ -105,56 +109,56 @@ export default function Profile() {
 
                 <SelectedIcon className="w-10 h-10 text-white" />
               </div>
-              <div>
+              <div className="flex-1">
                 {isEditing ?
-                <Input
-                  value={editedUser.full_name}
-                  onChange={(e) => setEditedUser({ ...editedUser, full_name: e.target.value })}
-                  className="text-2xl font-bold bg-gray-900 border-white/20 text-white mb-2" /> :
+                  <Input
+                    value={editedUser.full_name}
+                    onChange={(e) => setEditedUser({ ...editedUser, full_name: e.target.value })}
+                    className="text-2xl font-bold bg-gray-900 border-white/20 text-white mb-2" /> :
 
 
-                <h1 className="text-white text-xl font-bold">{user.full_name}</h1>
+                  <h1 className="text-white text-xl font-bold">{user.full_name}</h1>
                 }
-                <p className="text-white/60 text-xs">{user.email}</p>
+                <p className="text-white/60 text-xs mb-3">{user.email}</p>
+
+                {!isEditing && (
+                  <Button
+                    onClick={() => setIsEditing(true)}
+                    variant="outline"
+                    size="sm"
+                    className="bg-transparent border-white/50 hover:bg-white/10 gap-2 rounded-lg">
+                    <Pencil className="w-3 h-3" />
+                    Edit Profile
+                  </Button>
+                )}
               </div>
             </div>
-            {!isEditing ?
-            <Button
-              onClick={() => setIsEditing(true)}
-              variant="outline"
-              className="bg-transparent border-white/50 hover:bg-white/10 gap-2 rounded-lg">
-
-                <Pencil className="w-4 h-4" />
-                Edit Profile
-              </Button> :
-
-            <div className="flex gap-2">
+            {isEditing && (
+              <div className="flex gap-2">
                 <Button
-                onClick={handleSave}
-                className="bg-emerald-500 hover:bg-emerald-600 text-black gap-2 rounded-lg">
-
+                  onClick={handleSave}
+                  className="bg-emerald-500 hover:bg-emerald-600 text-black gap-2 rounded-lg">
                   <Save className="w-4 h-4" />
                   Save
                 </Button>
                 <Button
-                onClick={() => {
-                  setIsEditing(false);
-                  setEditedUser({
-                    full_name: user.full_name || "",
-                    bio: user.bio || "",
-                    favorite_genres: user.favorite_genres || [],
-                    map_icon: user.map_icon || "User",
-                    map_icon_color: user.map_icon_color || "#8B5CF6",
-                    is_public_profile: user.is_public_profile !== false
-                  });
-                }}
-                variant="outline"
-                className="bg-transparent border-white/50 hover:bg-white/10 rounded-lg">
-
+                  onClick={() => {
+                    setIsEditing(false);
+                    setEditedUser({
+                      full_name: user.full_name || "",
+                      bio: user.bio || "",
+                      favorite_genres: user.favorite_genres || [],
+                      map_icon: user.map_icon || "User",
+                      map_icon_color: user.map_icon_color || "#8B5CF6",
+                      is_public_profile: user.is_public_profile !== false
+                    });
+                  }}
+                  variant="outline"
+                  className="bg-transparent border-white/50 hover:bg-white/10 rounded-lg">
                   <X className="w-4 h-4" />
                 </Button>
               </div>
-            }
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -176,14 +180,14 @@ export default function Profile() {
           </div>
 
           {isEditing ?
-          <div className="space-y-6">
+            <div className="space-y-6">
               <div>
                 <Label className="text-white mb-2 block">Bio</Label>
                 <Textarea
-                value={editedUser.bio}
-                onChange={(e) => setEditedUser({ ...editedUser, bio: e.target.value })}
-                placeholder="Tell us about your musical taste..."
-                className="bg-gray-900 border-white/20 text-white h-24 rounded-lg" />
+                  value={editedUser.bio}
+                  onChange={(e) => setEditedUser({ ...editedUser, bio: e.target.value })}
+                  placeholder="Tell us about your musical taste..."
+                  className="bg-gray-900 border-white/20 text-white h-24 rounded-lg" />
 
               </div>
 
@@ -191,19 +195,19 @@ export default function Profile() {
                 <Label className="text-white mb-3 block">Map Icon</Label>
                 <div className="grid grid-cols-6 gap-3">
                   {ICONS.map(({ name, component: Icon }) =>
-                <button
-                  key={name}
-                  type="button"
-                  onClick={() => setEditedUser({ ...editedUser, map_icon: name })}
-                  className={`h-16 rounded-lg flex items-center justify-center transition-all ${
-                  editedUser.map_icon === name ?
-                  "ring-2 ring-emerald-400 bg-emerald-500/20" :
-                  "bg-white/10 hover:bg-white/20"}`
-                  }>
+                    <button
+                      key={name}
+                      type="button"
+                      onClick={() => setEditedUser({ ...editedUser, map_icon: name })}
+                      className={`h-16 rounded-lg flex items-center justify-center transition-all ${
+                        editedUser.map_icon === name ?
+                          "ring-2 ring-emerald-400 bg-emerald-500/20" :
+                          "bg-white/10 hover:bg-white/20"}`
+                      }>
 
                       <Icon className="w-6 h-6 text-white" />
                     </button>
-                )}
+                  )}
                 </div>
               </div>
 
@@ -211,18 +215,18 @@ export default function Profile() {
                 <Label className="text-white mb-3 block">Icon Color</Label>
                 <div className="grid grid-cols-8 gap-3">
                   {ICON_COLORS.map((color) =>
-                <button
-                  key={color}
-                  type="button"
-                  onClick={() => setEditedUser({ ...editedUser, map_icon_color: color })}
-                  className={`h-12 rounded-lg transition-all ${
-                  editedUser.map_icon_color === color ?
-                  "ring-2 ring-offset-2 ring-offset-black ring-white/50 scale-105" :
-                  "hover:scale-105"}`
-                  }
-                  style={{ backgroundColor: color }} />
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setEditedUser({ ...editedUser, map_icon_color: color })}
+                      className={`h-12 rounded-lg transition-all ${
+                        editedUser.map_icon_color === color ?
+                          "ring-2 ring-offset-2 ring-offset-black ring-white/50 scale-105" :
+                          "hover:scale-105"}`
+                      }
+                      style={{ backgroundColor: color }} />
 
-                )}
+                  )}
                 </div>
               </div>
 
@@ -230,18 +234,18 @@ export default function Profile() {
                 <Label className="text-white mb-3 block">Favorite Genres</Label>
                 <div className="flex flex-wrap gap-2">
                   {GENRES.map((genre) =>
-                <Badge
-                  key={genre}
-                  onClick={() => toggleGenre(genre)}
-                  className={`cursor-pointer transition-all ${
-                  (editedUser.favorite_genres || []).includes(genre) ?
-                  "bg-emerald-500 text-black hover:bg-emerald-600" :
-                  "bg-white/10 text-white/80 hover:bg-white/20"}`
-                  }>
+                    <Badge
+                      key={genre}
+                      onClick={() => toggleGenre(genre)}
+                      className={`cursor-pointer transition-all ${
+                        (editedUser.favorite_genres || []).includes(genre) ?
+                          "bg-emerald-500 text-black hover:bg-emerald-600" :
+                          "bg-white/10 text-white/80 hover:bg-white/20"}`
+                      }>
 
                       {genre}
                     </Badge>
-                )}
+                  )}
                 </div>
               </div>
 
@@ -253,32 +257,32 @@ export default function Profile() {
                   </p>
                 </div>
                 <Switch
-                checked={editedUser.is_public_profile}
-                onCheckedChange={(checked) => setEditedUser({ ...editedUser, is_public_profile: checked })} />
+                  checked={editedUser.is_public_profile}
+                  onCheckedChange={(checked) => setEditedUser({ ...editedUser, is_public_profile: checked })} />
 
               </div>
             </div> :
 
-          <div className="space-y-4">
+            <div className="space-y-4">
               {user.bio &&
-            <div>
+                <div>
                   <Label className="text-white/60 text-sm">Bio</Label>
                   <p className="text-white mt-1">{user.bio}</p>
                 </div>
-            }
+              }
 
               {user.favorite_genres && user.favorite_genres.length > 0 &&
-            <div>
+                <div>
                   <Label className="text-white/60 text-sm mb-2 block">Favorite Genres</Label>
                   <div className="flex flex-wrap gap-2">
                     {user.favorite_genres.map((genre) =>
-                <Badge key={genre} className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+                      <Badge key={genre} className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
                         {genre}
                       </Badge>
-                )}
+                    )}
                   </div>
                 </div>
-            }
+              }
 
               <div className="flex items-center gap-2 text-white/60 text-sm">
                 <span className={`w-2 h-2 rounded-full ${user.is_public_profile !== false ? "bg-emerald-400" : "bg-gray-400"}`} />

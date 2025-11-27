@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Landmark, Song, User, LandmarkSongContribution, SongVote } from "@/entities/all";
 import { InvokeLLM, UploadFile } from "@/integrations/Core";
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Plus, MapPin, Trash2, Pencil, Save, X as XIcon, Image as ImageIcon, Loader2, Link as LinkIcon, Share2 } from "lucide-react";
+import { ArrowLeft, Plus, MapPin, Trash2, Pencil, Save, X as XIcon, Image as ImageIcon, Loader2, Link as LinkIcon, Share2, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import SongItem from "../components/playlists/SongItem";
@@ -106,6 +105,18 @@ export default function LandmarkDetail() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  const handlePlayLandmark = async () => {
+    if (!currentUser || songs.length === 0) return;
+    
+    await User.updateMyUserData({
+      is_listening: true,
+      current_song_id: songs[0].id,
+      current_playlist_id: null
+    });
+    
+    loadData();
+  };
 
   const onSongAdded = async (newSongs) => {
     if (currentUser) {
@@ -411,6 +422,15 @@ export default function LandmarkDetail() {
                   </>
                 ) : (
                   <>
+                    <Button
+                      onClick={handlePlayLandmark}
+                      disabled={songs.length === 0}
+                      className="bg-emerald-500 hover:bg-emerald-600 text-black gap-2 rounded-lg"
+                      title="Play this landmark's BGM"
+                    >
+                      <Play className="w-4 h-4" />
+                      Play BGM
+                    </Button>
                     <Button
                       onClick={() => setShowAddSong(true)}
                       size="icon"

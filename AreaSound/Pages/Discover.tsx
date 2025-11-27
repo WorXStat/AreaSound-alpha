@@ -1,12 +1,11 @@
-
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { User, Song, Landmark, LandmarkCreationRecord } from "@/entities/all";
+import { User, Song, Landmark, LandmarkCreationRecord, Friendship } from "@/entities/all";
 import UsersMap from "../components/discover/UsersMap";
 import NearbyUsersList from "../components/discover/NearbyUsersList";
 import CreateLandmarkPanel from "../components/discover/CreateLandmarkPanel";
 import { Button } from "@/components/ui/button";
-import { PlusSquare, X, Layers } from "lucide-react";
-import SongSearch from "../components/discover/SongSearch";
+import { PlusSquare, X, Layers, Users as UsersIcon } from "lucide-react";
+import UnifiedSearch from "../components/discover/UnifiedSearch";
 import { InvokeLLM } from "@/integrations/Core";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -48,6 +47,8 @@ export default function Discover() {
   const [canCreateLandmark, setCanCreateLandmark] = useState(false);
   const [showUsersLayer, setShowUsersLayer] = useState(true);
   const [showLandmarksLayer, setShowLandmarksLayer] = useState(true);
+  const [showFriendsOnly, setShowFriendsOnly] = useState(false);
+  const [friendsEmails, setFriendsEmails] = useState(new Set());
 
   const mapRef = useRef(null);
 
@@ -94,22 +95,49 @@ export default function Discover() {
         setMapCenter([user.latitude, user.longitude]);
       }
 
-      const [allUsers, allLandmarks] = await Promise.all([
+      // Fetch all users, landmarks, and friendships
+      const [allUsers, allPublicLandmarks, userPrivateLandmarks, myFriendships1, myFriendships2] = await Promise.all([
         User.list(),
-        Landmark.list(),
+        Landmark.filter({ is_public: true }),
+        Landmark.filter({ created_by: user.email, is_public: false }),
+        Friendship.filter({ requester_email: user.email, status: 'accepted' }),
+        Friendship.filter({ recipient_email: user.email, status: 'accepted' })
       ]);
 
-      // Show all public landmarks to everyone, plus private landmarks created by current user
-      const visibleLandmarks = allLandmarks.filter(l => 
-        l.is_public !== false || l.created_by === user.email
-      );
+      const friends = new Set([
+        ...myFriendships1.map(f => f.recipient_email),
+        ...myFriendships2.map(f => f.requester_email)
+      ]);
+      setFriendsEmails(friends);
+
+      // Fetch landmarks shared with friends
+      let sharedLandmarks = [];
+      if (friends.size > 0) {
+         // This is a bit inefficient if there are many friends/landmarks, 
+         // but assuming filter works reasonably well.
+         // Ideally: Landmark.filter({ visible_to_friends: true, created_by: { $in: Array.from(friends) } })
+         // But client-side filtering is safer if SDK support is limited.
+         const friendPrivateLandmarks = await Landmark.filter({ visible_to_friends: true });
+         sharedLandmarks = friendPrivateLandmarks.filter(l => friends.has(l.created_by));
+      }
+
+      // Combine landmarks: Public + My Private + Shared with Me
+      // Deduplicate by ID just in case
+      const landmarkMap = new Map();
+      [...allPublicLandmarks, ...userPrivateLandmarks, ...sharedLandmarks].forEach(l => landmarkMap.set(l.id, l));
+      const visibleLandmarks = Array.from(landmarkMap.values());
+      
       setLandmarks(visibleLandmarks);
       
-      // Only show users with public profiles (treat undefined as public)
-      const publicUsers = allUsers.filter(u => u.is_public_profile !== false);
+      // Only show users with public profiles (treat undefined as public) OR friends
+      const publicUsers = allUsers.filter(u => 
+        (u.is_public_profile !== false || friends.has(u.email)) && 
+        u.latitude && 
+        u.longitude
+      );
 
       const nearby = publicUsers.filter(u =>
-        u.id !== user.id && u.latitude && u.longitude &&
+        u.id !== user.id &&
         calculateDistance(user.latitude, user.longitude, u.latitude, u.longitude) < 5
       );
       setAllNearbyUsers(nearby);
@@ -188,8 +216,16 @@ export default function Discover() {
   };
   
   const filteredNearbyUsers = useMemo(() => {
-    if (!searchQuery) return allNearbyUsers;
-    return allNearbyUsers.filter(user => {
+    let users = allNearbyUsers;
+    
+    // Filter by Friends Only toggle
+    if (showFriendsOnly) {
+        users = users.filter(u => friendsEmails.has(u.email));
+    }
+
+    if (!searchQuery) return users;
+    
+    return users.filter(user => {
         const userData = usersData[user.id];
         if (!userData || !userData.song) return false;
         return (
@@ -197,7 +233,16 @@ export default function Discover() {
             userData.song.artist.toLowerCase().includes(searchQuery)
         );
     });
-  }, [searchQuery, allNearbyUsers, usersData]);
+  }, [searchQuery, allNearbyUsers, usersData, showFriendsOnly, friendsEmails]);
+
+  const filteredLandmarks = useMemo(() => {
+      if (!showFriendsOnly) return landmarks;
+      // Show only my landmarks or friends' landmarks
+      return landmarks.filter(l => 
+          l.created_by === currentUser?.email || 
+          friendsEmails.has(l.created_by)
+      );
+  }, [landmarks, showFriendsOnly, friendsEmails, currentUser]);
 
   const onLandmarkCreated = async (landmark) => {
     setIsCreatingLandmark(false);
@@ -249,7 +294,13 @@ export default function Discover() {
         </div>
         
         <div className="p-4 md:p-6 space-y-6">
-            <SongSearch onSearch={handleSearch} isSearching={isSearching} />
+            {currentUser && (
+                <UnifiedSearch 
+                    onSongSearch={handleSearch} 
+                    isSongSearching={isSearching} 
+                    currentUser={currentUser} 
+                />
+            )}
 
             {/* Layer Controls */}
             <div className="bg-black/50 backdrop-blur-md border-2 cyber-border p-4 rounded-lg">
@@ -266,31 +317,46 @@ export default function Discover() {
                             id="users-layer"
                             checked={showUsersLayer}
                             onCheckedChange={setShowUsersLayer}
-                            className="data-[state=checked]:bg-emerald-400"
+                            className="data-[state=checked]:bg-emerald-400 data-[state=checked]:shadow-[0_0_10px_rgba(52,211,153,0.5)]"
                         />
                     </div>
                     <div className="flex items-center justify-between">
                         <Label htmlFor="landmarks-layer" className="text-white/80 cursor-pointer">
-                            Show Landmarks ({landmarks.length} visible)
+                            Show Landmarks ({filteredLandmarks.length} visible)
                         </Label>
                         <Switch
                             id="landmarks-layer"
                             checked={showLandmarksLayer}
                             onCheckedChange={setShowLandmarksLayer}
-                            className="data-[state=checked]:bg-emerald-400"
+                            className="data-[state=checked]:bg-emerald-400 data-[state=checked]:shadow-[0_0_10px_rgba(52,211,153,0.5)]"
                         />
                     </div>
-                </div>
-            </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-white/10">
+                        <div className="flex items-center gap-2">
+                            <UsersIcon className="w-4 h-4 text-sky-400" />
+                            <Label htmlFor="friends-only" className="text-white/80 cursor-pointer">
+                                Mutuals Only Mode
+                            </Label>
+                        </div>
+                        <Switch
+                            id="friends-only"
+                            checked={showFriendsOnly}
+                            onCheckedChange={setShowFriendsOnly}
+                            className="data-[state=checked]:bg-sky-500"
+                        />
+                    </div>
+                    </div>
+                    </div>
         
-            <div className="w-full h-96 bg-black border-2 cyber-border relative rounded-lg overflow-hidden shadow-2xl">
+            <div className="w-full h-96 bg-black border-2 cyber-border relative rounded-lg overflow-hidden shadow-2xl z-10">
                 {currentUser && (
                     <UsersMap 
                       currentUser={currentUser} 
                       nearbyUsers={filteredNearbyUsers}
                       vibeMatches={vibeMatches}
                       usersData={usersData}
-                      landmarks={landmarks}
+                      landmarks={filteredLandmarks}
                       mapRef={mapRef}
                       isPlacingPin={isCreatingLandmark}
                       onMapMove={handleMapMove}
