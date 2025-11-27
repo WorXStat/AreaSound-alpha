@@ -26,6 +26,11 @@
       "type": "boolean",
       "description": "Whether the landmark is visible to all users",
       "default": true
+    },
+    "visible_to_friends": {
+      "type": "boolean",
+      "description": "Whether the landmark is visible to mutual friends (if not public)",
+      "default": false
     }
   },
   "required": [
